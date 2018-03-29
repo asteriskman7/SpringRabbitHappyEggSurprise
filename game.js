@@ -17,6 +17,11 @@ let game = {
   score: 0,
   finished: false,
   eggs: [],
+  upgrades: {
+    look: [{cost: 1000}],
+    speed: [{cost: 10, newVal: 0.90}],
+    value: [{cost: 100, newVal: 2}]
+  },
   init: function() {
     console.log('init');
 
@@ -89,7 +94,7 @@ let game = {
         game.rabbit.SetPosition(new b2Vec2(rabbitX, rabbitY));
 
         if (Math.random() > game.eggGenerateLimit) {
-          game.eggs.push(game.createEgg(rabbitX + 0.7/2, rabbitY, 0.1, 1));
+          game.eggs.push(game.createEgg(rabbitX + 0.7/2, rabbitY, 0.1, game.eggValue));
         }
 
         for (let i = game.eggs.length - 1; i >= 0; i--) {
@@ -103,7 +108,11 @@ let game = {
           }
         }
 
-
+        let availColor = '#00F00060';
+        let unavailColor = '#00000020';
+        game.lookButton.bgcolor = (game.upgrades.look.length > 0 && game.upgrades.look[0].cost <= game.score) ? availColor : unavailColor;
+        game.speedButton.bgcolor = (game.upgrades.speed.length > 0 && game.upgrades.speed[0].cost <= game.score) ? availColor : unavailColor;
+        game.valueButton.bgcolor = (game.upgrades.value.length > 0 && game.upgrades.value[0].cost <= game.score) ? availColor : unavailColor;
 
         game.world.Step(1/60, 2, 2);
         game.world.ClearForces();
@@ -273,6 +282,8 @@ let game = {
     game.titleMode = false;
     game.eggGenerateLimit = 0.99;
     game.rabbitSpeed = 0.001;
+    game.eggValue = 1;
+    game.lookLevel = 0;
 
     //set up Box2D
     game.world = new b2World(new b2Vec2(0, 10), true);
@@ -322,12 +333,12 @@ let game = {
 
     let buttonWidth = 100;
     let buttonHeight = 50;
-    game.createButton(game.canvas.width - 100, 0*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
-      '#00000020', '#00000060', '#00000060', 'look', () => {console.log('look');});
-    game.createButton(game.canvas.width - 100, 1*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
-      '#00000020', '#00000060', '#00000060', 'speed', () => {console.log('speed');});
-    game.createButton(game.canvas.width - 100, 2*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
-      '#00000020', '#00000060', '#00000060', 'value', () => {console.log('value');});
+    game.lookButton = game.createButton(game.canvas.width - 100, 0*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
+      '#00000020', '#00000060', '#00000060', 'look', () => {game.buyUpgrade('look');}, 'look');
+    game.speedButton = game.createButton(game.canvas.width - 100, 1*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
+      '#00000020', '#00000060', '#00000060', 'speed', () => {game.buyUpgrade('speed');}, 'speed');
+    game.valueButton = game.createButton(game.canvas.width - 100, 2*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
+      '#00000020', '#00000060', '#00000060', 'value', () => {game.buyUpgrade('value');}, 'value');
     /*
     let dialogText = "Hi there! I'm the Bot Operation Support Superintendent (B.O.S.S)." +
       " I'm in charge of watching over you, the Self Propelled Obliterater of Trash (S.P.O.T)" +
@@ -339,8 +350,10 @@ let game = {
   },
   createButton: function(x, y, w, h, font, bgcolor, fgcolor, strokeColor, text, callback, tag) {
     //x,y are the upper left corner
-    game.buttons.push({rect: {x: x, y: y, w: w, h: h}, font: font, bgcolor: bgcolor,
-      fgcolor: fgcolor, strokeColor, text: text, callback: callback, tag: tag});
+    let newButton = {rect: {x: x, y: y, w: w, h: h}, font: font, bgcolor: bgcolor,
+      fgcolor: fgcolor, strokeColor, text: text, callback: callback, tag: tag}
+    game.buttons.push(newButton);
+    return newButton;
   },
   drawButtons: function() {
     game.ctx.save();
@@ -577,6 +590,26 @@ let game = {
   removeButtonByTag: function(tag) {
     game.buttons = game.buttons.filter((v) => v.tag !== tag);
   },
+  buyUpgrade: function(type) {
+    let upgrade = game.upgrades[type][0];
+    if (upgrade === undefined) {return;}
+
+    if (upgrade.cost <= game.score) {
+      game.score -= upgrade.cost;
+      switch (type) {
+        case 'look':
+          game.lookLevel++;
+          break;
+        case 'speed':
+          game.eggGenerateLimit = upgrade.newVal;
+          break;
+        case 'value':
+          game.eggValue = upgrade.newVal;
+          break;
+      }
+      game.upgrades[type].shift();
+    }
+  }
 };
 
 //bring Box2D items into global namespace
