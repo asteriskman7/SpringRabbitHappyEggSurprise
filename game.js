@@ -129,7 +129,7 @@ let game = {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       if (images.isDoneLoading()) {
-        //images.draw(ctx, 'titleBG', 0, 0);
+        images.draw(ctx, 'title', 0, 0);
       } else {
         ctx.fillText('LOADING', game.canvas.width * 0.5, game.canvas.height * 0.5);
       }
@@ -137,7 +137,12 @@ let game = {
 
     } else {
 
-      //images.draw(ctx, 'background', 0, 0);
+      if (game.lookLevel > 3) {
+        images.draw(ctx, 'background', 0, 0);
+      }
+      if (game.lookLevel > 4) {
+        images.draw(ctx, 'headtop', 139, 311);
+      }
 
       for (let b = game.world.GetBodyList(); b; b = b.m_next) {
         let userData = b.GetUserData();
@@ -162,30 +167,43 @@ let game = {
             );
             break;
           case 'rabbit':
+            if (game.lookLevel < 3) {
+              ctx.fillStyle = "#00FF00";
+              ctx.fillRect(
+                (pos.x - userData.width / 2) * game.scale,
+                (pos.y - userData.height / 2) * game.scale,
+                userData.width * game.scale,
+                userData.height * game.scale
+              );
+            } else {
+              images.draw(ctx, 'rabbit', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+            }
 
-            ctx.fillStyle = "#00FF00";
-            ctx.fillRect(
-              (pos.x - userData.width / 2) * game.scale,
-              (pos.y - userData.height / 2) * game.scale,
-              userData.width * game.scale,
-              userData.height * game.scale
-            );
 
-            //images.draw(ctx, 'spot', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
             break;
           case 'egg':
-            ctx.strokeStyle = '#FF0000';
-            ctx.beginPath();
-            ctx.arc(pos.x * game.scale, pos.y * game.scale, userData.radius * game.scale, 0, Math.PI * 2, 0);
-            ctx.stroke();
-            //images.draw(ctx, 'boss', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+            if (game.lookLevel < 1) {
+              ctx.strokeStyle = '#FF0000';
+              ctx.beginPath();
+              ctx.arc(pos.x * game.scale, pos.y * game.scale, userData.radius * game.scale, 0, Math.PI * 2, 0);
+              ctx.stroke();
+            } else {
+              if (game.lookLevel < 6) {
+                images.draw(ctx, 'egg' + userData.imgNum, (pos.x - userData.radius) * game.scale, (pos.y - userData.radius) * game.scale);
+              } else {
+                images.draw(ctx, 'yuck', (pos.x - userData.radius) * game.scale, (pos.y - userData.radius) * game.scale);
+              }
+            }
             break;
           case 'peg':
-            ctx.strokeStyle = '#00FF00';
-            ctx.beginPath();
-            ctx.arc(pos.x * game.scale, pos.y * game.scale, userData.radius * game.scale, 0, Math.PI * 2, 0);
-            ctx.stroke();
-            //images.draw(ctx, 'boss', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
+            if (game.lookLevel < 2) {
+              ctx.strokeStyle = '#00FF00';
+              ctx.beginPath();
+              ctx.arc(pos.x * game.scale, pos.y * game.scale, userData.radius * game.scale, 0, Math.PI * 2, 0);
+              ctx.stroke();
+            } else {
+              images.draw(ctx, 'flower0', (pos.x - userData.radius) * game.scale, (pos.y - userData.radius ) * game.scale);
+            }
             break;
           case 'wall':
 
@@ -207,8 +225,18 @@ let game = {
         ctx.restore();
       }
 
+
+      if (game.lookLevel > 4) {
+        images.draw(ctx, 'headbot', 139, 570);
+      }
+
+
       //draw score
-      ctx.fillStyle = '#2d2727';
+      if (game.lookLevel < 4) {
+        ctx.fillStyle = '#2d2727';
+      } else {
+        ctx.fillStyle = '#d7d7d7';
+      }
       ctx.font = "25px 'Comic Sans MS'";
       ctx.textAlign = 'left';
       ctx.textBaseline = 'bottom';
@@ -296,8 +324,10 @@ let game = {
     let rightRamp = game.createWall(4.5, (game.canvas.height - 60) / game.scale, 3.5, 10 / game.scale);
     rightRamp.SetAngle(-Math.PI * 2 * 0.03);
 
-    let leftWall  = game.createWall(-10 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
-    let rightWall = game.createWall((game.canvas.width - 10) / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
+    //let leftWall  = game.createWall(-10 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
+    let leftWall  = game.createWall(-20 / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
+    //let rightWall = game.createWall((game.canvas.width - 10) / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
+    let rightWall = game.createWall((game.canvas.width + 0) / game.scale, 0, 20 / game.scale, game.canvas.height / game.scale);
 
     //create rabbit
     game.rabbit = game.createBox(250 / game.scale, 250 / game.scale, 0.7, 0.5, 'rabbit');
@@ -317,7 +347,7 @@ let game = {
       for (let x = 0; x < (y % 2 === 0 ? cols : cols + 1); x++) {
         let pegX = minPegX + (y % 2 === 0 ? x : x - 0.5) * (maxPegX - minPegX) / (cols - 1);
         let pegY = minPegY + y * (maxPegY - minPegY) / (rows - 1);
-        game.createPeg(pegX, pegY, pegRadius);
+        game.debugpeg = game.createPeg(pegX, pegY, pegRadius);
       }
     }
 
@@ -351,7 +381,7 @@ let game = {
   createButton: function(x, y, w, h, font, bgcolor, fgcolor, strokeColor, text, callback, tag) {
     //x,y are the upper left corner
     let newButton = {rect: {x: x, y: y, w: w, h: h}, font: font, bgcolor: bgcolor,
-      fgcolor: fgcolor, strokeColor, text: text, callback: callback, tag: tag}
+      fgcolor: fgcolor, strokeColor, text: text, callback: callback, tag: tag};
     game.buttons.push(newButton);
     return newButton;
   },
@@ -481,6 +511,8 @@ let game = {
     userData.type = 'egg';
     userData.radius = radius;
     userData.value = value;
+    let eggImageCount = 4;
+    userData.imgNum = Math.floor(Math.random() * eggImageCount);
 
     var fDef = new b2FixtureDef();
     fDef.density = 1.0;
@@ -530,6 +562,8 @@ let game = {
     newBody = game.world.CreateBody(bDef);
     newBody.CreateFixture(fDef);
     newBody.SetUserData(userData);
+
+    newBody.SetAngle(Math.PI * 2 * Math.random());
 
     return newBody;
   },

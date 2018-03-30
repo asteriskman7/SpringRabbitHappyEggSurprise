@@ -1,0 +1,16 @@
+{
+  "imgUrl": "RabbitSprites.png",
+  "spriteList": [
+    {"name": "egg0", "x": 0, "y": 0, "width": 15, "height": 15},
+    {"name": "egg1", "x": 16, "y": 0, "width": 15, "height": 15},
+    {"name": "egg2", "x": 32, "y": 0, "width": 15, "height": 15},
+    {"name": "egg3", "x": 48, "y": 0, "width": 15, "height": 15},
+    {"name": "flower0", "x": 64, "y": 0, "width": 15, "height": 15},
+    {"name": "rabbit", "x": 0, "y": 17, "width": 53, "height": 36},
+    {"name": "background", "x": 0, "y": 55, "width": 600, "height": 600},
+    {"name": "headtop", "x": 0, "y": 658, "width": 290, "height": 259},
+    {"name": "headbot", "x": 0, "y": 921, "width": 290, "height": 92},
+    {"name": "yuck", "x": 80, "y": 0, "width": 15, "height": 15},
+    {"name": "title", "x": 0, "y": 1018, "width": 600, "height": 600}
+  ]
+}
