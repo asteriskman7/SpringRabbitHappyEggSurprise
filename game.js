@@ -17,13 +17,16 @@ let game = {
   score: 0,
   finished: false,
   eggs: [],
+  speedUpgrades: [{cost: 40, newVal: 0.95}, {cost: 1000, newVal: 0.9}, {cost: 11000, newVal: 0.85}, {cost: 45000, newVal: 0.8}, {cost: 300000, newVal: 0.3}],
   upgrades: {
-    look: [{cost: 1000}],
-    speed: [{cost: 10, newVal: 0.90}],
-    value: [{cost: 100, newVal: 2}]
+    look: [{cost: 25}, {cost: 300}, {cost: 2000}, {cost: 5000}, {cost: 15000}, {cost: 140000}],
+    speed: undefined,
+    value: [{cost: 10, newVal: 2}, {cost: 500, newVal: 4}, {cost: 2400, newVal: 8}, {cost: 5500, newVal: 16}, {cost: 18000, newVal: 32}, {cost: 55000, newVal: 64}]
   },
   init: function() {
     console.log('init');
+
+    game.upgrades.speed = game.speedUpgrades.slice();
 
     game.canvas = document.getElementById('cmain');
     game.ctx = game.canvas.getContext('2d');
@@ -110,9 +113,13 @@ let game = {
 
         let availColor = '#00F00060';
         let unavailColor = '#00000020';
-        game.lookButton.bgcolor = (game.upgrades.look.length > 0 && game.upgrades.look[0].cost <= game.score) ? availColor : unavailColor;
+        game.lookButton.bgcolor  = (game.upgrades.look.length  > 0 && game.upgrades.look[0].cost  <= game.score) ? availColor : unavailColor;
         game.speedButton.bgcolor = (game.upgrades.speed.length > 0 && game.upgrades.speed[0].cost <= game.score) ? availColor : unavailColor;
         game.valueButton.bgcolor = (game.upgrades.value.length > 0 && game.upgrades.value[0].cost <= game.score) ? availColor : unavailColor;
+
+        game.lookButton.progress  = game.upgrades.look.length > 0  ? (game.score / game.upgrades.look[0].cost)  : 0;
+        game.speedButton.progress = game.upgrades.speed.length > 0 ? (game.score / game.upgrades.speed[0].cost) : 0;
+        game.valueButton.progress = game.upgrades.value.length > 0 ? (game.score / game.upgrades.value[0].cost) : 0;
 
         game.world.Step(1/60, 2, 2);
         game.world.ClearForces();
@@ -175,6 +182,12 @@ let game = {
                 userData.width * game.scale,
                 userData.height * game.scale
               );
+              ctx.fillStyle = '#004000';
+              ctx.font = "12px 'Comic Sans MS'";
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('rabbit', pos.x * game.scale, pos.y * game.scale);
+
             } else {
               images.draw(ctx, 'rabbit', (pos.x - userData.width / 2) * game.scale, (pos.y - userData.height / 2) * game.scale);
             }
@@ -398,6 +411,12 @@ let game = {
       game.ctx.font = v.font;
       game.ctx.fillStyle = v.fgcolor;
       game.ctx.fillText(v.text, v.rect.x + v.rect.w * 0.5 , v.rect.y + v.rect.h * 0.5);
+
+      if (v.progress && v.progress < 1) {
+        game.ctx.fillStyle = '#7aabe880';
+        game.ctx.fillRect(v.rect.x, v.rect.y, v.rect.w * v.progress, v.rect.h);
+      }
+
       if (hover) {
         game.ctx.fillStyle = game.hoverColor;
         game.ctx.fillRect(v.rect.x, v.rect.y, v.rect.w, v.rect.h);
@@ -638,6 +657,8 @@ let game = {
           game.eggGenerateLimit = upgrade.newVal;
           break;
         case 'value':
+          game.eggGenerateLimit = 0.99;
+          game.upgrades.speed = game.speedUpgrades.slice();
           game.eggValue = upgrade.newVal;
           break;
       }
