@@ -17,7 +17,7 @@ let game = {
   score: 0,
   finished: false,
   eggs: [],
-  speedUpgrades: [{cost: 40, newVal: 0.95}, {cost: 1000, newVal: 0.9}, {cost: 11000, newVal: 0.85}, {cost: 45000, newVal: 0.8}, {cost: 300000, newVal: 0.3}],
+  speedUpgrades: [{cost: 40, newVal: 0.95}, {cost: 1000, newVal: 0.9}, {cost: 11000, newVal: 0.85}, {cost: 45000, newVal: 0.8}, {cost: 300000, newVal: 0.0}],
   upgrades: {
     look: [{cost: 25}, {cost: 300}, {cost: 2000}, {cost: 5000}, {cost: 15000}, {cost: 140000}],
     speed: undefined,
@@ -90,7 +90,7 @@ let game = {
         }
       }
     } else {
-      if (game.physicsEnabled && !game.finished) {
+      if (game.physicsEnabled) {
 
         let rabbitX = 4 + 3 * Math.sin(timestamp*game.rabbitSpeed);
         let rabbitY = 0.4;
@@ -105,7 +105,12 @@ let game = {
           let pos = egg.GetPosition();
           let data = egg.GetUserData();
           if (pos.y >= 8) {
-            game.score += data.value;
+            //game.score += data.value;
+            if (data.imgNum === 4) {
+              game.score += game.eggValue * 10;  
+            } else {
+              game.score += game.eggValue;
+            }
             game.world.DestroyBody(egg);
             game.eggs.splice(i, 1);
           }
@@ -120,6 +125,8 @@ let game = {
         game.lookButton.progress  = game.upgrades.look.length > 0  ? (game.score / game.upgrades.look[0].cost)  : 0;
         game.speedButton.progress = game.upgrades.speed.length > 0 ? (game.score / game.upgrades.speed[0].cost) : 0;
         game.valueButton.progress = game.upgrades.value.length > 0 ? (game.score / game.upgrades.value[0].cost) : 0;
+
+        game.finished = game.upgrades.look.length === 0 && game.upgrades.speed.length === 0 && game.upgrades.value.length === 0;
 
         game.world.Step(1/60, 2, 2);
         game.world.ClearForces();
@@ -255,6 +262,11 @@ let game = {
       ctx.textBaseline = 'bottom';
       ctx.fillText(`Egg Points: ${game.score}`, 10, game.canvas.height - 8);
 
+      if (game.finished) {
+        ctx.textAlign = 'right';
+        ctx.fillText('You win!?', game.canvas.width - 10, game.canvas.height - 8);
+      }
+
     }
 
 /*
@@ -379,7 +391,7 @@ let game = {
     game.lookButton = game.createButton(game.canvas.width - 100, 0*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
       '#00000020', '#00000060', '#00000060', 'look', () => {game.buyUpgrade('look');}, 'look');
     game.speedButton = game.createButton(game.canvas.width - 100, 1*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
-      '#00000020', '#00000060', '#00000060', 'speed', () => {game.buyUpgrade('speed');}, 'speed');
+      '#00000020', '#00000060', '#00000060', 'rate', () => {game.buyUpgrade('speed');}, 'speed');
     game.valueButton = game.createButton(game.canvas.width - 100, 2*buttonHeight, buttonWidth, buttonHeight, "30px 'Comic Sans MS'",
       '#00000020', '#00000060', '#00000060', 'value', () => {game.buyUpgrade('value');}, 'value');
     /*
@@ -532,6 +544,9 @@ let game = {
     userData.value = value;
     let eggImageCount = 4;
     userData.imgNum = Math.floor(Math.random() * eggImageCount);
+    if (Math.random() > 0.98) {
+      userData.imgNum = 4;
+    }
 
     var fDef = new b2FixtureDef();
     fDef.density = 1.0;
